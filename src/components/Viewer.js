@@ -4,11 +4,15 @@ import file from '../sample.pdf';
 
 export default class Viewer extends Component {
   state = {
-    pageNumber: 1
+    pageNumber: 1,
+    numPages: null
   };
 
-  onDocumentLoadSuccess = () => {
+  onDocumentLoadSuccess = document => {
+    console.log(document);
+    const { numPages } = document;
     this.setState({
+      numPages,
       pageNumber: 1
     });
   };
@@ -23,14 +27,14 @@ export default class Viewer extends Component {
   nextPage = () => this.changePage(1);
 
   render() {
-    const { pageNumber } = this.state;
-
+    const { pageNumber, numPages } = this.state;
     return (
       <div className="viewLayer">
         <Document file={file} onLoadSuccess={this.onDocumentLoadSuccess}>
-          <Page pageNumber={pageNumber} renderTextLayer={false} scale={1.4} />
+          <Page pageNumber={pageNumber} renderTextLayer={false} width={600} />
         </Document>
         <>
+          Page {pageNumber} of {numPages}
           <button type="button" onClick={this.nextPage}>
             Next Page
           </button>
