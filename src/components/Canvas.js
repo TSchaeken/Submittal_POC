@@ -26,16 +26,19 @@ class Fabric extends React.Component {
 
   render() {
     const { drawingMode } = this.state;
+    const { height, width } = this.props;
     return (
-      <div className="editLayer">
-        <canvas id="main-canvas" width="800px" height="800px" />
+      <>
+        <div className="editLayer">
+          <canvas id="main-canvas" width={`${width}px`} height={`${height}px`} />
+        </div>
         <button type="button" onClick={this.enableDraw}>
           {drawingMode ? 'Disable Draw' : 'Enable Draw'}
         </button>
         <button type="button" onClick={this.addNote}>
           Add a note
         </button>
-      </div>
+      </>
     );
   }
 }

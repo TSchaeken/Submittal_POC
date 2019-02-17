@@ -1,19 +1,32 @@
 import React, { Component } from 'react';
-import { Page, Document } from 'react-pdf';
+import { Page } from 'react-pdf';
+import { Document } from 'react-pdf/dist/entry.webpack';
 import file from '../sample.pdf';
+import Canvas from './Canvas';
 
 export default class Viewer extends Component {
   state = {
     pageNumber: 1,
-    numPages: null
+    numPages: null,
+    pageWidth: 600,
+    pageHeight: null,
+    edit: false
   };
 
   onDocumentLoadSuccess = document => {
-    console.log(document);
     const { numPages } = document;
     this.setState({
       numPages,
       pageNumber: 1
+    });
+  };
+
+  onPageLoadSuccess = page => {
+    const { height, width } = page;
+    console.log(height, width);
+    this.setState({
+      pageWidth: width,
+      pageHeight: height
     });
   };
 
@@ -22,17 +35,26 @@ export default class Viewer extends Component {
       pageNumber: prevState.pageNumber + offset
     }));
 
+  enableEdit = () => this.setState({ edit: true });
+
   previousPage = () => this.changePage(-1);
 
   nextPage = () => this.changePage(1);
 
   render() {
-    const { pageNumber, numPages } = this.state;
+    const { pageNumber, numPages, pageWidth, pageHeight, edit } = this.state;
     return (
       <div className="viewLayer">
         <Document file={file} onLoadSuccess={this.onDocumentLoadSuccess}>
-          <Page pageNumber={pageNumber} renderTextLayer={false} width={600} />
+          <Page
+            pageNumber={pageNumber}
+            renderTextLayer={false}
+            width={pageWidth}
+            onLoadSuccess={this.onPageLoadSuccess}
+            className="pageLayer"
+          />
         </Document>
+        {edit && <Canvas width={pageWidth} height={pageHeight} />}
         <>
           Page {pageNumber} of {numPages}
           <button type="button" onClick={this.nextPage}>
@@ -40,6 +62,9 @@ export default class Viewer extends Component {
           </button>
           <button type="button" onClick={this.previousPage}>
             Prev Page
+          </button>
+          <button type="button" onClick={this.enableEdit}>
+            {edit ? `Finish Edit` : `Enable Edit`}
           </button>
         </>
       </div>
