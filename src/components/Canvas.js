@@ -9,6 +9,12 @@ class Fabric extends React.Component {
 
   componentDidMount() {
     this.fabricCanvas = new fabric.Canvas('main-canvas');
+    document.addEventListener('keydown', this.deleteObject, false);
+  }
+
+  componentWillUnmount() {
+    this.fabricCanvas.dispose();
+    document.removeEventListener('keydown', this.deleteObject, false);
   }
 
   enableDraw = () => {
@@ -23,6 +29,19 @@ class Fabric extends React.Component {
     const note = new fabric.Textbox('Notes...');
     this.fabricCanvas.add(note);
     note.center();
+  };
+
+  deleteObject = e => {
+    if (e.keyCode === 46) {
+      const selected = this.fabricCanvas.getActiveObjects();
+
+      if (selected) {
+        if (window.confirm('Deleted selected items?')) {
+          this.fabricCanvas.remove(...selected);
+        }
+        this.fabricCanvas.discardActiveObject().renderAll();
+      }
+    }
   };
 
   render() {
