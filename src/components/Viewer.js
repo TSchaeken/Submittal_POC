@@ -23,7 +23,6 @@ export default class Viewer extends Component {
 
   onPageLoadSuccess = page => {
     const { height, width } = page;
-    console.log(height, width);
     this.setState({
       pageWidth: width,
       pageHeight: height
@@ -35,7 +34,17 @@ export default class Viewer extends Component {
       pageNumber: prevState.pageNumber + offset
     }));
 
-  enableEdit = () => this.setState({ edit: true });
+  switchEdit = () => {
+    const { edit } = this.state;
+    if (edit && window.confirm('Are you sure you want to exit Edit Mode?')) {
+      this.setState({
+        edit: !edit
+      });
+    } else
+      this.setState(prevState => ({
+        edit: !prevState.edit
+      }));
+  };
 
   previousPage = () => this.changePage(-1);
 
@@ -57,13 +66,13 @@ export default class Viewer extends Component {
         {edit && <Canvas width={pageWidth} height={pageHeight} />}
         <>
           Page {pageNumber} of {numPages}
-          <button type="button" onClick={this.nextPage}>
-            Next Page
-          </button>
           <button type="button" onClick={this.previousPage}>
             Prev Page
           </button>
-          <button type="button" onClick={this.enableEdit}>
+          <button type="button" onClick={this.nextPage}>
+            Next Page
+          </button>
+          <button type="button" onClick={this.switchEdit}>
             {edit ? `Finish Edit` : `Enable Edit`}
           </button>
         </>

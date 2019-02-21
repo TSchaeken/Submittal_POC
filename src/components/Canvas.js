@@ -1,5 +1,6 @@
 import React from 'react';
 import { fabric } from 'fabric';
+import PropTypes from 'prop-types';
 
 class Fabric extends React.Component {
   state = {
@@ -42,5 +43,10 @@ class Fabric extends React.Component {
     );
   }
 }
+
+Fabric.propTypes = {
+  height: PropTypes.number.isRequired,
+  width: PropTypes.number.isRequired
+};
 
 export default Fabric;
