@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 class Fabric extends React.Component {
   state = {
     drawingMode: false,
+    savedJSON: [],
     savedImage: []
   };
 
@@ -33,8 +34,16 @@ class Fabric extends React.Component {
     note.center();
   };
 
+  saveToJSON = () => {
+    const json = this.fabricCanvas.toJSON();
+    sessionStorage.setItem('json', json);
+    this.setState(prevState => ({
+      savedJSON: [...prevState.savedJSON, json]
+    }));
+  };
+
   saveToImage = () => {
-    const image = this.fabricCanvas.toJSON();
+    const image = this.fabricCanvas.toDataURL();
     sessionStorage.setItem('image', image);
     this.setState(prevState => ({
       savedImage: [...prevState.savedImage, image]
@@ -44,7 +53,16 @@ class Fabric extends React.Component {
   loadImage = () => {
     const { savedImage } = this.state;
     const canvas = this.fabricCanvas;
-    canvas.loadFromJSON(savedImage[0]);
+    fabric.Image.fromURL(savedImage[0], img => {
+      canvas.add(img);
+      canvas.renderAll();
+    });
+  };
+
+  loadJSON = () => {
+    const { savedJSON } = this.state;
+    const canvas = this.fabricCanvas;
+    canvas.loadFromJSON(savedJSON[0]);
   };
 
   deleteObject = e => {
@@ -61,7 +79,7 @@ class Fabric extends React.Component {
   };
 
   render() {
-    const { drawingMode, savedImage } = this.state;
+    const { drawingMode, savedJSON, savedImage } = this.state;
     const { height, width } = this.props;
     return (
       <>
@@ -71,15 +89,23 @@ class Fabric extends React.Component {
         <button type="button" onClick={this.enableDraw}>
           {drawingMode ? 'Disable Draw' : 'Enable Draw'}
         </button>
+        <button type="button" onClick={this.saveToJSON}>
+          Save as JSON
+        </button>
         <button type="button" onClick={this.saveToImage}>
-          Save as image
+          Save as Image
         </button>
         <button type="button" onClick={this.addNote}>
           Add note
         </button>
+        {savedJSON.length > 0 && (
+          <button type="button" onClick={this.loadJSON}>
+            load JSON
+          </button>
+        )}
         {savedImage.length > 0 && (
           <button type="button" onClick={this.loadImage}>
-            load image
+            load Image
           </button>
         )}
       </>
