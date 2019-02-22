@@ -5,18 +5,42 @@ import PropTypes from 'prop-types';
 class Fabric extends React.Component {
   state = {
     drawingMode: false,
-    savedJSON: [],
-    savedImage: []
+    jsons: [],
+    images: []
   };
 
   componentDidMount() {
     this.fabricCanvas = new fabric.Canvas('main-canvas');
     document.addEventListener('keydown', this.deleteObject, false);
+    window.addEventListener('beforeunload', this.saveData.bind(this));
+    this.getData();
   }
 
   componentWillUnmount() {
-    this.fabricCanvas.dispose();
     document.removeEventListener('keydown', this.deleteObject, false);
+    window.removeEventListener('beforeunload', this.saveData.bind(this));
+    this.saveData();
+    this.fabricCanvas.dispose();
+  }
+
+  saveData() {
+    for (const key in this.state) {
+      sessionStorage.setItem(key, JSON.stringify(this.state[key]));
+    }
+  }
+
+  getData() {
+    for (const key in this.state) {
+      if (sessionStorage.hasOwnProperty(key)) {
+        let value = sessionStorage.getItem(key);
+        try {
+          value = JSON.parse(value);
+          this.setState({ [key]: value });
+        } catch (e) {
+          this.setState({ [key]: value });
+        }
+      }
+    }
   }
 
   enableDraw = () => {
@@ -27,6 +51,13 @@ class Fabric extends React.Component {
     });
   };
 
+  clearAll = () => {
+    const canvas = this.fabricCanvas;
+    if (window.confirm('Clear canvas?')) {
+      canvas.clear();
+    }
+  };
+
   addNote = () => {
     const canvas = this.fabricCanvas;
     const note = new fabric.Textbox('Notes...');
@@ -35,38 +66,39 @@ class Fabric extends React.Component {
   };
 
   saveToJSON = () => {
-    const json = this.fabricCanvas.toJSON();
-    sessionStorage.setItem('json', json);
-    this.setState(prevState => ({
-      savedJSON: [...prevState.savedJSON, json]
-    }));
+    const { jsons } = this.state;
+    const { user } = this.props;
+    const newItem = { date: Date.now(), owner: user, content: this.fabricCanvas.toJSON() };
+    const saveJSON = [...jsons, newItem];
+    this.setState({
+      jsons: saveJSON
+    });
+  };
+
+  loadJSON = () => {
+    const canvas = this.fabricCanvas;
+    const { jsons } = this.state;
+    canvas.loadFromJSON(jsons[0].content);
   };
 
   saveToImage = () => {
     const image = this.fabricCanvas.toDataURL();
-    sessionStorage.setItem('image', image);
     this.setState(prevState => ({
-      savedImage: [...prevState.savedImage, image]
+      images: [...prevState.images, image]
     }));
   };
 
   loadImage = () => {
-    const { savedImage } = this.state;
+    const { images } = this.state;
     const canvas = this.fabricCanvas;
-    fabric.Image.fromURL(savedImage[0], img => {
+    fabric.Image.fromURL(images[0], img => {
       canvas.add(img);
       canvas.renderAll();
     });
   };
 
-  loadJSON = () => {
-    const { savedJSON } = this.state;
-    const canvas = this.fabricCanvas;
-    canvas.loadFromJSON(savedJSON[0]);
-  };
-
   deleteObject = e => {
-    if (e.keyCode === 46) {
+    if (e.keyCode === (46 || 8)) {
       const selected = this.fabricCanvas.getActiveObjects();
 
       if (selected) {
@@ -79,35 +111,36 @@ class Fabric extends React.Component {
   };
 
   render() {
-    const { drawingMode, savedJSON, savedImage } = this.state;
+    const { drawingMode, jsons, images } = this.state;
     const { height, width } = this.props;
     return (
       <>
-        <div className="editLayer">
+        <div className="edit-layer">
           <canvas id="main-canvas" width={`${width}px`} height={`${height}px`} />
         </div>
-        <button type="button" onClick={this.enableDraw}>
-          {drawingMode ? 'Disable Draw' : 'Enable Draw'}
-        </button>
-        <button type="button" onClick={this.saveToJSON}>
-          Save as JSON
-        </button>
-        <button type="button" onClick={this.saveToImage}>
-          Save as Image
-        </button>
-        <button type="button" onClick={this.addNote}>
-          Add note
-        </button>
-        {savedJSON.length > 0 && (
-          <button type="button" onClick={this.loadJSON}>
-            load JSON
+        <div className="edit-controls">
+          <button type="button" onClick={this.enableDraw}>
+            {drawingMode ? 'Disable Draw' : 'Enable Draw'}
           </button>
-        )}
-        {savedImage.length > 0 && (
-          <button type="button" onClick={this.loadImage}>
-            load Image
+          <button type="button" onClick={this.addNote}>
+            Add Note
           </button>
-        )}
+          <button type="button" onClick={this.saveToJSON}>
+            Save as Editable
+          </button>
+          <button type="button" onClick={this.loadJSON} disabled={!(jsons.length > 0)}>
+            Continue Edit
+          </button>
+          <button type="button" onClick={this.saveToImage}>
+            Save as Overlay
+          </button>
+          <button type="button" onClick={this.loadImage} disabled={!(images.length > 0)}>
+            Load Saved Overlay
+          </button>
+          <button type="button" onClick={this.clearAll}>
+            clear
+          </button>
+        </div>
       </>
     );
   }

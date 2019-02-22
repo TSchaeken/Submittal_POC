@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { Page } from 'react-pdf';
 import { Document } from 'react-pdf/dist/entry.webpack';
+import PropTypes from 'prop-types';
 import file from '../sample.pdf';
 import Fabric from './Fabric';
 
-export default class Viewer extends Component {
+class Viewer extends Component {
   state = {
     pageNumber: 1,
     numPages: null,
@@ -52,31 +53,44 @@ export default class Viewer extends Component {
 
   render() {
     const { pageNumber, numPages, pageWidth, pageHeight, edit } = this.state;
+    const { user } = this.props;
     return (
-      <div className="viewLayer">
+      <div className="view-layer">
+        {user && <p>Welcome back user {user}!</p>}
         <Document file={file} onLoadSuccess={this.onDocumentLoadSuccess}>
           <Page
             pageNumber={pageNumber}
             renderTextLayer={false}
             width={pageWidth}
             onLoadSuccess={this.onPageLoadSuccess}
-            className="pageLayer"
           />
         </Document>
-        {edit && <Fabric width={pageWidth} height={pageHeight} />}
-        <>
+        <p>
           Page {pageNumber} of {numPages}
-          <button type="button" onClick={this.previousPage}>
+        </p>
+        {edit && <Fabric width={pageWidth} height={pageHeight} user={user} />}
+        <div>
+          <button type="button" onClick={this.previousPage} disabled={pageNumber === 1}>
             Prev Page
           </button>
-          <button type="button" onClick={this.nextPage}>
+          <button type="button" onClick={this.nextPage} disabled={pageNumber === numPages}>
             Next Page
           </button>
           <button type="button" onClick={this.switchEdit}>
             {edit ? `Finish Edit` : `Enable Edit`}
           </button>
-        </>
+        </div>
       </div>
     );
   }
 }
+
+Viewer.propTypes = {
+  user: PropTypes.number
+};
+
+Viewer.defaultProps = {
+  user: 1
+};
+
+export default Viewer;
