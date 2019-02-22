@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Page } from 'react-pdf';
 import { Document } from 'react-pdf/dist/entry.webpack';
 import file from '../sample.pdf';
-import Canvas from './Canvas';
+import Fabric from './Fabric';
 
 export default class Viewer extends Component {
   state = {
@@ -63,7 +63,7 @@ export default class Viewer extends Component {
             className="pageLayer"
           />
         </Document>
-        {edit && <Canvas width={pageWidth} height={pageHeight} />}
+        {edit && <Fabric width={pageWidth} height={pageHeight} />}
         <>
           Page {pageNumber} of {numPages}
           <button type="button" onClick={this.previousPage}>

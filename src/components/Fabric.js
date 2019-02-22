@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 
 class Fabric extends React.Component {
   state = {
-    drawingMode: false
+    drawingMode: false,
+    savedImage: []
   };
 
   componentDidMount() {
@@ -26,9 +27,24 @@ class Fabric extends React.Component {
   };
 
   addNote = () => {
+    const canvas = this.fabricCanvas;
     const note = new fabric.Textbox('Notes...');
-    this.fabricCanvas.add(note);
+    canvas.add(note);
     note.center();
+  };
+
+  saveToImage = () => {
+    const image = this.fabricCanvas.toJSON();
+    sessionStorage.setItem('image', image);
+    this.setState(prevState => ({
+      savedImage: [...prevState.savedImage, image]
+    }));
+  };
+
+  loadImage = () => {
+    const { savedImage } = this.state;
+    const canvas = this.fabricCanvas;
+    canvas.loadFromJSON(savedImage[0]);
   };
 
   deleteObject = e => {
@@ -45,7 +61,7 @@ class Fabric extends React.Component {
   };
 
   render() {
-    const { drawingMode } = this.state;
+    const { drawingMode, savedImage } = this.state;
     const { height, width } = this.props;
     return (
       <>
@@ -55,9 +71,17 @@ class Fabric extends React.Component {
         <button type="button" onClick={this.enableDraw}>
           {drawingMode ? 'Disable Draw' : 'Enable Draw'}
         </button>
-        <button type="button" onClick={this.addNote}>
-          Add a note
+        <button type="button" onClick={this.saveToImage}>
+          Save as image
         </button>
+        <button type="button" onClick={this.addNote}>
+          Add note
+        </button>
+        {savedImage.length > 0 && (
+          <button type="button" onClick={this.loadImage}>
+            load image
+          </button>
+        )}
       </>
     );
   }
